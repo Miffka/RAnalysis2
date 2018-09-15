@@ -1,0 +1,169 @@
+---
+title: "Влияние пола на вероятность заболевания раком мозга"
+author: "Владимир Альтементов"
+output: 
+  html_document:
+    toc: yes
+    toc_float: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,fig.width = 12, fig.height = 6,
+                      message = FALSE, warning = FALSE)
+options(digits=2)
+library(data.table)
+```
+
+### Введение
+
+<b> Цель исследования</b>: Выяснить, кто чаще болеет раком мозга: женщины или мужчины. 
+
+<b> Актуальность</b>: Изучение зависимости заболеваний нервной системы от пола может порождать новые вопросы о факторах, порождающих такую зависимость (как физиологических, так и психологических).
+
+<b> Гипотеза</b> заключается в том, что существует зависимость между полом и заболеванием
+
+Для проведения исследования взяты данные с сайта Центра Контроля за Заболеваниями США (http://www.cdc.gov/cancer/npcr/uscs/download_data.html) Данные представляют из себя статистику различных случаев рака за 1999-2013 год.
+
+Загрузим данные. 
+```{r}
+data <- fread("USCS_cancer_1999_2013.csv")
+```
+
+Данные содержат несколько переменных, из которых нас интересуют следующие:  
+
+- AREA - наблюдаемый штат
+- EVENT_TYPE - тип наблюдения (количество заболевших / количество умерших)
+- RACE - расовая принадлежность заболевших
+- SEX - половая принадлежность заболевших
+- SITE - тип ракового заболевания
+- COUNT - количество случаев
+
+### Подготовка данных
+ 
+В этой части мы отфильтруем необходимые данные для последующей работы. Фильтрация данных проведена следущим образом:
+
+- выберем тип рака: рак мозга и нервной системы (Brain and Other Nervous System)
+- выберем тип наблюдения: количество заболевших (Incidence)
+- выберем только те наблюдения, у которых указан пол заболевшего
+- выберем суммарные наблюдения для всех рас
+- отфильтруем те наблюдения, где дана сумма за 2009-2013 год
+- удалим наблюдения, принадлежащие к группам штатов (макрорегионам)
+- и наконец оставим колонки: штат (AREA), количество случаев(COUNT), пол(SEX), год(YEAR)
+
+Все вышеуказанные преобразования данных проще всего сделать с помощью библиотеки `dplyr`
+
+```{r}
+library(dplyr)
+
+brain_cancer <- data %>%
+  filter(SITE == "Brain and Other Nervous System") %>%
+  filter(EVENT_TYPE == "Incidence") %>%
+  filter(SEX %in% c("Female", "Male")) %>%
+  filter(RACE == "All Races") %>%
+  filter(YEAR != "2009-2013") %>%
+  filter(!(AREA %in% c("East North Central", "East South Central", "Middle Atlantic", 
+                        "Midwest", "Northeast", "Pacific", "South", "South Atlantic", "West", 
+                        "West North Central", "West South Central"))) %>%
+  select(AREA, COUNT, SEX, YEAR)
+```
+
+```{r}
+library(ggplot2)
+library(RColorBrewer)
+
+my_pal <- colorRampPalette(brewer.pal(6, "RdBu"))
+
+by_area <- brain_cancer %>%
+  group_by(YEAR, AREA) %>%
+  summarise(count_by_area = sum(as.numeric(COUNT), na.rm = TRUE))
+
+ggplot(by_area, aes(factor(AREA), as.numeric(count_by_area), fill=factor(YEAR))) +
+  geom_bar(stat = "identity") + 
+  theme_bw() +
+  scale_x_discrete(name = "регион") + 
+  scale_y_continuous(name = "количество случаев") + 
+  scale_fill_manual(name = "год", values = my_pal(15)) + 
+  ggtitle(label = "Количество случаев рака мозга в США в зависимости от штата") + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
+
+Так как в данных есть такие случаи, когда количество заболевших женщин указано, а количество заболевших мужчин в год отсутствует, то необходимо удалить такие данные. Нам для сравнения необходимо, чтобы данные для обоих полов были известны. Напомню, что мы хотим исследовать количество заболевших определенным типом рака в зависимости от половой принадлежности. Следовательно, если мы просто найдем сумму заболевших, заменяя отсутствующие данные нолями, то возможен случай, когда количество заболевших одного пола может быть завышенным, потому что данные для противоположного пола отсутствуют. Следующий код создает новую таблицу в которой есть две колонки (Male и Female), которые содержат случаи для соответственно мужчин и женщин. Дальше очень легко отбросить те строки, для которых отсутствует одно из значений. А также вытащим год наблюдения из названий строк.
+
+```{r}
+library(reshape2)
+
+brain_cancer_cnt <- as.data.frame(t(dcast(brain_cancer, SEX ~ AREA + YEAR, value.var = "COUNT")))
+
+## take first row of table as columns names
+colnames(brain_cancer_cnt) <- unname(unlist(brain_cancer_cnt[1, ]))
+brain_cancer_cnt <- brain_cancer_cnt[-1, ]
+  
+## drop rows with NA
+brain_cancer_cnt <- brain_cancer_cnt[complete.cases(brain_cancer_cnt), ]
+
+## extract year from rowname
+brain_cancer_cnt$year <- sapply(strsplit(rownames(brain_cancer_cnt), "_"), "[[", 2)
+```
+
+Теперь найдем суммарное число заболевших каждого пола по годам.
+
+```{r}
+### now we can group by year
+summarized_by_year <- brain_cancer_cnt %>%
+  group_by(year) %>%
+  summarise(total_count_male = sum(as.numeric(Male)), total_count_female = sum(as.numeric(Female)))
+```
+
+Для удобства визуализации преобразуем данные
+
+```{r}
+summarized_by_year_melted <- melt(summarized_by_year, id.var='year')
+```
+
+Распределение количества заболевших по годам 
+
+```{r}
+ggplot(summarized_by_year_melted, aes(year, value)) +
+  geom_bar(stat = "identity") + 
+  theme_bw() +
+  scale_x_discrete(name = "год") + 
+  scale_y_continuous(name = "количество случаев") + 
+  ggtitle(label = "Количество случаев рака мозга в США по годам")
+```
+
+
+Теперь мы можем сравнить визуально количество заболевших обоих полов
+
+```{r}
+ggplot(summarized_by_year_melted, aes(year, value, fill=factor(variable))) +
+  geom_bar(stat = "identity", position = "dodge", alpha=0.5) + 
+  theme_bw() + 
+  scale_fill_manual(labels=c("Мужчины", "Женщины"), name="Кол-во случаев", 
+                      values = c("blue", 'red')) +
+  scale_x_discrete(name = "год") + 
+  scale_y_continuous(name = "количество случаев") + 
+  ggtitle(label = "Количество случаев рака мозга в зависимости от пола")
+```
+
+Данные готовы, переходим к проверке статистической гипотезы
+
+### Проверка статистической гипотезы
+
+В качестве нулевой гипотезы берем утверждение: вероятность заболевания раком мозга не зависит от половой принадлежности человека. Это означает, что количество заболевших женщин в среднем будет равно количеству заболевших мужчин. Альтернативная гипотеза: вероятность заболевания зависит от половой принадлежности человека. 
+
+Для проверки гипотезы будем использовать парный `t.test`, так как данные разбиты по годам и существует естественный способ разбития всех значений на пары. На графике выше видно, что существует некоторая вариабельность количества случаев в год и необходимо сделать поправку на эту вариабельность. Выберем уровень значимости (confidence level) 0.99
+
+```{r}
+tt <- t.test(summarized_by_year$total_count_male, summarized_by_year$total_count_female, 
+       paired = TRUE, conf.level = 0.99)
+tt
+```
+
+Результаты показывают, что p-value (вероятность получить такие наблюдения при условии правильности нулевой гипотезы) равна `r tt$p.value`, что означает, что мы должны отвергнуть нулевую гипотезу в пользу альтернативной. 
+
+### Заключение
+
+Проведенный анализ показывает, что вероятность заболеть раком мозга зависит от половой принадлежности человека, при этом мужчины чаще болеют раком мозга. 99% интервал уверенности для разницы между количеством заболевших мужчин и женщин для всего населения США равен [`r tt$conf.int`]
+

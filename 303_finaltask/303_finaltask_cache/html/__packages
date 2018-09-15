@@ -1,0 +1,9 @@
+base
+dplyr
+tidyr
+stringr
+ggplot2
+ggthemes
+lazyeval
+ggvis
+bindrcpp

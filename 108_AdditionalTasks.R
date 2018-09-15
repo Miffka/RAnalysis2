@@ -1,0 +1,10 @@
+#setwd(as.character("C:/Users/miffka/Documents/!DataMining/RAnalysis"))
+setwd("/media/glycosylase/EC6A2F256A2EEBD0/Documents and Settings/miffka/Documents/!DataMining/RAnalysis2")
+
+library(ggplot2)
+library(tidyr)
+library(dplyr)
+library(lazyeval)
+library(microbenchmark)
+library(scales)
+library(data.table)

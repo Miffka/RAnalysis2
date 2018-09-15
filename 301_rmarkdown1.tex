@@ -1,0 +1,242 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{%
+\usepackage{microtype}
+\UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\PassOptionsToPackage{usenames,dvipsnames}{color} % color is loaded by hyperref
+\hypersetup{unicode=true,
+            pdftitle={30N\_rmarkdown - Analyzing trends in Canadian glacier mass},
+            pdfauthor={Me},
+            colorlinks=true,
+            linkcolor=Maroon,
+            citecolor=Blue,
+            urlcolor=blue,
+            breaklinks=true}
+\urlstyle{same}  % don't use monospace font for urls
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{{#1}}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{{#1}}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{{#1}}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{{#1}}}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{{#1}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{{#1}}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{{#1}}}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{{#1}}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{{#1}}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{{#1}}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{{#1}}}
+\newcommand{\ImportTok}[1]{{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{{#1}}}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{{#1}}}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{{#1}}}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{{#1}}}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{{#1}}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{{#1}}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{{#1}}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{{#1}}}}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{{#1}}}}
+\newcommand{\BuiltInTok}[1]{{#1}}
+\newcommand{\ExtensionTok}[1]{{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{{#1}}}
+\newcommand{\RegionMarkerTok}[1]{{#1}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{{#1}}}}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{{#1}}}}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{{#1}}}}
+\newcommand{\NormalTok}[1]{{#1}}
+\usepackage{longtable,booktabs}
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+\IfFileExists{parskip.sty}{%
+\usepackage{parskip}
+}{% else
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{0}
+% Redefines (sub)paragraphs to behave more like sections
+\ifx\paragraph\undefined\else
+\let\oldparagraph\paragraph
+\renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+\let\oldsubparagraph\subparagraph
+\renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+
+%%% Use protect on footnotes to avoid problems with footnotes in titles
+\let\rmarkdownfootnote\footnote%
+\def\footnote{\protect\rmarkdownfootnote}
+
+%%% Change title format to be more compact
+\usepackage{titling}
+
+% Create subtitle command for use in maketitle
+\newcommand{\subtitle}[1]{
+  \posttitle{
+    \begin{center}\large#1\end{center}
+    }
+}
+
+\setlength{\droptitle}{-2em}
+  \title{30N\_rmarkdown - Analyzing trends in Canadian glacier mass}
+  \pretitle{\vspace{\droptitle}\centering\huge}
+  \posttitle{\par}
+  \author{Me}
+  \preauthor{\centering\large\emph}
+  \postauthor{\par}
+  \predate{\centering\large\emph}
+  \postdate{\par}
+  \date{9 July 2017}
+
+
+\begin{document}
+\maketitle
+
+{
+\hypersetup{linkcolor=black}
+\setcounter{tocdepth}{2}
+\tableofcontents
+}
+\subsection{Introduction}\label{introduction}
+
+The data used in study is taken from
+\url{http://open.canada.ca/en/open-data}\footnote{Here is the
+  \href{https://raw.githubusercontent.com/tonytonov/Rcourse/master/R\%20markdown/demos/glacier.csv}{direct
+  link} to data download.}. The algorithm is taken from Antonov and
+Ermakov (2015).
+
+The data set contains 518 measurements of 6 Canadian glacier mass
+balance, collected from 1960 till 2007. Namely, the file includes these
+glaciers:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{levels}\NormalTok{(glacier$GEO)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "Devon Ice Cap NW - Devon Island, Nunavut"                                             
+## [2] "Helm Glacier - southern Coast Mountains (Garibaldi Provincial Park), British Columbia"
+## [3] "Meighen Ice Cap - Meighen Island, Nunavut"                                            
+## [4] "Peyto Glacier - Rocky Mountain eastern slopes (Banff National Park), Alberta"         
+## [5] "Place Glacier - southern Coast Mountains, British Columbia"                           
+## [6] "White Glacier - Axel Heiberg Island, Nunavut"
+\end{verbatim}
+
+\subsection{Hypothesis}\label{hypothesis}
+
+We are interested in finding out whether there is a statistically
+significant change in mass balance over the observed time period. For
+these purposes we use \textbf{R} (version 3.4.1) and an appropriate
+statistical test called \emph{t-test}:
+\[t = \frac{\overline{x} - \mu_0}{s/\sqrt{n}} \]
+
+The workflow is as follows:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Read file
+\item
+  Run t-test for each glacier and collect p-values
+\item
+  Support the evidence with
+
+  \begin{itemize}
+  \tightlist
+  \item
+    a table of results;
+  \item
+    a plot that could help demonstrate the effect.
+  \end{itemize}
+\end{enumerate}
+
+\subsection{Analysis}\label{analysis}
+
+\begin{longtable}[]{@{}lrrrrrr@{}}
+\caption{Descriptive statistics and confidence intervals}\tabularnewline
+\toprule
+Name & YearsObserved & MeanChange & WorstChange & WorstYear & PValue &
+ConfidenceLimit\tabularnewline
+\midrule
+\endfirsthead
+\toprule
+Name & YearsObserved & MeanChange & WorstChange & WorstYear & PValue &
+ConfidenceLimit\tabularnewline
+\midrule
+\endhead
+Devon Ice Cap NW & 47 & -91.2 & -559 & 2001 & 5.81e-05 &
+-39.0\tabularnewline
+Helm Glacier & 31 & -1277.3 & -2850 & 1998 & 1.73e-07 &
+-798.0\tabularnewline
+Meighen Ice Cap & 48 & -107.6 & -970 & 1962 & 4.51e-03 &
+-12.5\tabularnewline
+Peyto Glacier & 42 & -579.9 & -2230 & 1998 & 3.62e-07 &
+-339.7\tabularnewline
+Place Glacier & 43 & -861.4 & -2486 & 1995 & 3.70e-09 &
+-572.3\tabularnewline
+White Glacier & 48 & -152.4 & -818 & 2007 & 6.56e-05 &
+-64.3\tabularnewline
+\bottomrule
+\end{longtable}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics{301_rmarkdown1_files/figure-latex/ggplot-1.pdf}
+\caption{Annual dynamics of glacier's mass}
+\end{figure}
+
+\subsection*{Bibliography}\label{bibliography}
+\addcontentsline{toc}{subsection}{Bibliography}
+
+\hypertarget{refs}{}
+\hypertarget{ref-AntonovErmakov_RandomCubaturesQMC}{}
+Antonov, A.A., and S.M. Ermakov. 2015. ``Random Cubatures and
+Quasi-Monte Carlo Methods.'' \emph{Monte Carlo Methods and Applications}
+21 (3): 179--87.
+doi:\href{https://doi.org/10.1515/mcma-2015-0102}{10.1515/mcma-2015-0102}.
+
+
+\end{document}

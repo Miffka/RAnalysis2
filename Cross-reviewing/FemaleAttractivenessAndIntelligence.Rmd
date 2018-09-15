@@ -1,0 +1,64 @@
+---
+title: "Is there a relation between women attractivness and their perceived intelligence?"
+output: 
+  pdf_document:
+    keep_tex: yes
+    latex_engine: xelatex
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(fig.width=6, fig.height=4) 
+```
+```{r echo=FALSE}
+library(knitr)
+read_chunk('FemaleAttractivenessAndIntelligence.R')
+```
+
+## Hypothesis
+
+There is an opinion that the more attractive women, the less they are burdened by their intelligence. Author's private experince didn't find a confirmation of such a thesis, however, it appeared to be interesting to refute it using a larger sample. The goal of this reasearch is to verify a hypothesis that attracive women are actually percevied to be more intelligent by men than their less attractive fellows.
+
+## Dataset overview
+```{r, include=F}
+<<raw_data>>
+<<data>>
+```
+To verify a hypothesis an appropriate dataset was chosen. The dataset [^1] was gathered by Columbia Business School from multiple speed dating [^2] events from 2002-2004 in USA and consists from `r nrow(rawData)` rows. Each row in the dataset represents a short 4 minute date. A date has `r ncol(rawData)` various attributes, but only a few will be of our interest: *gender* to distinguish women, *attr_o*- attractiveness rated by the partner and *intel_o*- intelligence rated by the partner.
+To allow easier analysis let's extract from the dataset only rows containing women attributes rated by men and select only two columns we're interested in: *attr_o* and *intel_o*. For the sake of readability let's rename them to *attractiveness* and *intelligence* respectively. Finally, let's remove rows which have NA values. As a result, we have a dataset with `r nrow(data)` rows and `r ncol(data)` columns: *attractiveness* and *intelligence*.
+
+## Dataset visualisation
+```{r, include=F}
+<<visualisation>>
+<<correlation>>
+```
+Let's first visualise our dataset and see if we can find any insights. Since our variables are discrete, a standard scatter plot may be misleading because points would be overlapping. To prevent overplotting we'll apply jittering [^3] to the points. *Figure 1* shows a relation between female attractivness and intelligence. Apparently, there is no strong linear correlation between attractivness and inteligence (correlation coefficient is `r round(correlationCoefficient, digits=2)` with p-value close to `r p.value`).  However, we can observe that there is a pattern- the further we go by *attractivness* axis, the less low scores for *intelligence* we can see. And vice versa- the lower score for *attractivness*, the less high scores for *intelligence*. Let's find out if this observation is statistically significant.
+```{r, echo=F}
+scatterplot
+```
+
+## Hypothesis testing
+```{r, include=F}
+<<t-test>>
+```
+To test our hypothesis let's select two, approximately equally sized, groups from our dataset. The first group will be consisting of women whoes appearence was rated from 0 to 5, and the second group with appereance from 8 to 10. Distribution characteristics of both groups are depicted in *Figure 2*.
+
+```{r, echo=F}
+boxplot
+```
+
+Now it is time to formalise our hypothesis.
+
+*Null hypothesis*- there is no difference in mean perceived intelligince between two groups of women- less and more attractive.
+
+*Alternative hypothesis*- mean perceived intelligence in the group with more attractive women is greater than in the group with less attractive women.
+
+Let's perform a two-sample one-tailed Student's t-test with 95% confidence level. Mean intelligence in the first group appears to be `r round(firstGroupMeanIntel, digits=2)`, in the second group- `r round(secondGroupMeanIntel, digits=2)`. p-value is $`r statistic.pvalue`$ which is much less than 0.05 (for 95% confidence level) thus allowing us to reject the null hypothesis in favour of the alternative hypothesis.
+
+## Conclusion
+Even though there is no strong linear correlation between women attractivness and their intelligence, on average, more attractive women are perceived by men to be more intelligent.
+
+[^1]: http://www.stat.columbia.edu/~gelman/arm/examples/speed.dating/
+[^2]: https://en.wikipedia.org/wiki/Speed_dating
+[^3]: http://ggplot2.tidyverse.org/reference/geom_jitter.html
